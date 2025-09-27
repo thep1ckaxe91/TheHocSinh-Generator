@@ -1,5 +1,4 @@
-from random import randint
-import pandas, pygame, math, sys, time, os, datetime
+import pygame, sys, os, datetime
 from openpyxl import load_workbook
 import xlrd
 import pygame.freetype as ft
