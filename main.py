@@ -205,7 +205,7 @@ def capture(save_jobs: ThreadPoolExecutor):  # to save the image
         cur_row_id += 1
 
 
-if __name__ == "__main__":
+def main():
     with ThreadPoolExecutor(max_workers=4) as save_jobs:
         while running:
             for event in pygame.event.get():
@@ -217,3 +217,6 @@ if __name__ == "__main__":
             capture(save_jobs)
             pygame.display.flip()
             clock.tick(60)
+
+if __name__ == "__main__":
+    main()

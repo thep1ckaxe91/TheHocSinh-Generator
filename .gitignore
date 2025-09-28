@@ -1,3 +1,5 @@
 .venv
 excel_files/**
 result/**
+export-config.yml
+__pycache__/
