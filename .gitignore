@@ -3,3 +3,4 @@ excel_files/**
 result/**
 export-config.yml
 __pycache__/
+test.py

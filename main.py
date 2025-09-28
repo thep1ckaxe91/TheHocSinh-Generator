@@ -191,11 +191,12 @@ def capture(save_jobs: ThreadPoolExecutor):  # to save the image
         global running
         running = False
         return
-    save_jobs.submit(
+    save_jobs.submit( # possible race condition here if the saving is too slow
         pygame.image.save,
         window,
         os.path.join(PATH, "result", class_name, f"{cur_name}.png"),
     )
+
     if DEBUGGING:
         save_jobs.shutdown(wait=True)
         # pygame.time.wait(10000)
