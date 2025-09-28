@@ -1,0 +1,18 @@
+# 0-based index
+start_row: 8
+name_col: 1
+dob_col: 2
+gender_col: 3
+split_name: False
+class_name: an_ban_tru # sub-directory name
+file_name: an_ban_tru # without file extension
+school_year: 2025 - 2030
+
+NAME_POS_X: 621
+NAME_POS_Y: 280
+DOB_POS_X: 640
+DOB_POS_Y: 330
+NK_POS_X: 640
+NK_POS_Y: 380
+
+DEBUG: False
