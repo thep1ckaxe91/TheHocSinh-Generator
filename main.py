@@ -1,4 +1,4 @@
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor
 from openpyxl import load_workbook
 from pygame import Vector2
 from PIL import Image
@@ -57,9 +57,9 @@ class_name: str = config.get("class_name", "1A")
 file_name: str = config.get("file_name", "data")
 
 """//////////////CONST POSITION FOR GENERATION (DIFFERENT FOR EACH DEFAULT IMAGE)//////////////////"""
-NAME_POS = Vector2(config.get('NAME_POS_X'), config.get('NAME_POS_Y'))
-DOB_POS = Vector2(config.get('DOB_POS_X'), config.get('DOB_POS_Y'))
-NK_POS = Vector2(config.get('NK_POS_X'), config.get('NK_POS_Y'))
+NAME_POS = Vector2(config.get("NAME_POS_X"), config.get("NAME_POS_Y"))
+DOB_POS = Vector2(config.get("DOB_POS_X"), config.get("DOB_POS_Y"))
+NK_POS = Vector2(config.get("NK_POS_X"), config.get("NK_POS_Y"))
 SCHOOL_POS = Vector2(50, 50)
 GENDER_POS = ()
 FONT_SIZE = 47
@@ -126,24 +126,15 @@ cur_nk = config.get("school_year", "2023 - 2028")
 def update():  # to load the current student data
     pygame.display.set_caption(str(int(clock.get_fps())))
     global cur_name_surf, cur_dob_surf, cur_name, cur_dob
-    try:
-        cur_name = (
-            data_list[cur_row_id][name_col]
-            + split_name
-            * (
-                " " * (data_list[cur_row_id][name_col][-1] != " ")
-                + data_list[cur_row_id][name_col + 1]
-            )
-        ).title()
-    except:
-        exit(0)
+    cur_name = (
+        data_list[cur_row_id][name_col]
+        + split_name
+        * (
+            " " * (data_list[cur_row_id][name_col][-1] != " ")
+            + data_list[cur_row_id][name_col + 1]
+        )
+    ).title()
     cur_dob = data_list[cur_row_id][dob_col]
-    # cur_name_surf = INFO_FONT.render(
-    #     cur_name, INFO_COLOR, style=INFO_STYLE, size=FONT_SIZE
-    # )[0]
-    # cur_dob_surf = INFO_FONT.render(
-    #     cur_dob, INFO_COLOR, style=INFO_STYLE, size=FONT_SIZE
-    # )[0]
 
 
 def calculate_corrected_ascender(font_obj, text, size):
@@ -175,19 +166,14 @@ def blit_corrected_baseline(
 
     blit_y_corrected = BASE_Y_CORRECTED - corrected_ascender
 
-    # 4. Render and Blit the text
     text_surf_corrected = font.render(
         text, INFO_COLOR, size=FONT_SIZE, style=INFO_STYLE
     )[0]
     surf.blit(text_surf_corrected, (dst.x, blit_y_corrected))
 
 
-def draw():  # to draw the data on the screen
+def draw():
     window.blit(default_img, (0, 0))
-    # window.blit(cur_name_surf, NAME_POS - Vector2(0, cur_name_surf.get_height() / 2))
-    # window.blit(cur_dob_surf, DOB_POS - Vector2(0, cur_dob_surf.get_height() / 2))
-    # window.blit(cur_nk_surf, NK_POS - Vector2(0, cur_nk_surf.get_height() / 2))
-
     blit_corrected_baseline(window, INFO_FONT, cur_name, NAME_POS)
     blit_corrected_baseline(window, INFO_FONT, cur_dob, DOB_POS)
     blit_corrected_baseline(window, INFO_FONT, cur_nk, NK_POS)
@@ -195,29 +181,23 @@ def draw():  # to draw the data on the screen
     # window.blit(cur_school_surf,SCHOOL_POS)
 
 
-def capture():  # to save the image
+def capture(save_jobs: ThreadPoolExecutor):  # to save the image
     global student_index, cur_row_id
     if not os.path.exists(os.path.join(PATH, "result", class_name)):
         os.mkdir(
             os.path.join(PATH, "result", class_name),
         )
-    # pygame.image.save(
-    #     window, os.path.join(PATH, "result", class_name, f"{cur_name}.png")
-    # )
     if cur_name == None or cur_name == "None":
         global running
         running = False
         return
-    t = Thread(
-        target=pygame.image.save,
-        args=(
-            window,
-            os.path.join(PATH, "result", class_name, f"{cur_name}.png"),
-        ),
+    save_jobs.submit(
+        pygame.image.save,
+        window,
+        os.path.join(PATH, "result", class_name, f"{cur_name}.png"),
     )
-    t.start()
     if DEBUGGING:
-        t.join()
+        save_jobs.shutdown(wait=True)
         # pygame.time.wait(10000)
         exit(0)
     else:
@@ -226,13 +206,14 @@ def capture():  # to save the image
 
 
 if __name__ == "__main__":
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-        update()
-        draw()
-        capture()
-        pygame.display.flip()
-        clock.tick(60)
+    with ThreadPoolExecutor(max_workers=4) as save_jobs:
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            update()
+            draw()
+            capture(save_jobs)
+            pygame.display.flip()
+            clock.tick(60)
