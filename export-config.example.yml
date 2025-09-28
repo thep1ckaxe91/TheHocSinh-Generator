@@ -4,8 +4,8 @@ name_col: 1
 dob_col: 2
 gender_col: 3
 split_name: False
-class_name: an_ban_tru # sub-directory name
-file_name: an_ban_tru # without file extension
+class_name: 1A # sub-directory name
+file_name: 1A # without file extension
 school_year: 2025 - 2030
 
 NAME_POS_X: 621
